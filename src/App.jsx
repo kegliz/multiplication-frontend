@@ -1,19 +1,28 @@
 import React from 'react';
 import styled from 'styled-components';
 import Challenge from './components/Challenge';
-import ChallengeProvider from './api-client/ChallengeProvider';
+import Attempt from './components/Attempt';
 import { QueryClient, QueryClientProvider } from 'react-query';
 import { ReactQueryDevtools } from 'react-query/devtools';
+import Container from '@material-ui/core/Container';
+
+import { ThemeProvider } from '@material-ui/core/styles';
+import theme from './theme';
 
 const queryClient = new QueryClient();
 
 function App() {
   return (
     <QueryClientProvider client={queryClient}>
-      <div className="App">
-        <Challenge />
-      </div>
-      <ReactQueryDevtools initialIsOpen />
+      <ThemeProvider theme={theme}>
+        <Container maxWidth="sm">
+          <div className="App">
+            <Challenge />
+            <Attempt />
+          </div>
+        </Container>
+        <ReactQueryDevtools initialIsOpen />
+      </ThemeProvider>
     </QueryClientProvider>
   );
 }
