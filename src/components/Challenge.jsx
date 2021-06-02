@@ -1,5 +1,5 @@
 import React from 'react';
-import Typography from '@material-ui/core/Typography';
+import { Grid, Typography } from '@material-ui/core';
 import { makeStyles } from '@material-ui/core/styles';
 import PropTypes from 'prop-types';
 import api from '../api-client/api';
@@ -31,27 +31,26 @@ function Challenge() {
   const classes = useStyles();
 
   return (
-    <div>
+    <Grid container spacing={2}>
       {isLoading ? (
-        'Loading...'
+        <Grid item xs={12}>
+          'Loading...'{' '}
+        </Grid>
       ) : isError ? (
-        <span>Error: {error.message}</span>
+        <Grid item xs={12}>
+          Error: {error.message}{' '}
+        </Grid>
       ) : (
-        <>
-          <div>
-            <Typography
-              className={classes.freeStyle}
-              variant="h3"
-              align="center"
-            >
-              Your new challenge is
-            </Typography>
-            <Multiplication {...data} />
-          </div>
+        <Grid item xs={12}>
+          <Typography className={classes.freeStyle} variant="h3" align="center">
+            Your new challenge is
+          </Typography>
+          <Multiplication {...data} />
+
           <div>{isFetching ? 'Background Updating...' : ' '}</div>
-        </>
+        </Grid>
       )}
-    </div>
+    </Grid>
   );
 }
 

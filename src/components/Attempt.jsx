@@ -1,11 +1,13 @@
-import React from 'react';
+import React, { useState } from 'react';
 import { Button, Grid } from '@material-ui/core';
 import { makeStyles } from '@material-ui/core/styles';
 
 import { useForm, FormProvider } from 'react-hook-form';
 
 import FormInput from '../controls/FormInput';
-import { useQueryClient } from 'react-query';
+import { useQueryClient, useMutation } from 'react-query';
+import api from '../api-client/api';
+import UpdateMessage from './UpdateMessage';
 
 import { useInput } from './util';
 
@@ -15,24 +17,52 @@ const useStyles = makeStyles((theme) => ({
   },
 }));
 
+const addAttempt = async (newAttempt) => {
+  const { data } = await api.addAttempt(newAttempt);
+  return data;
+};
+
 function Attempt() {
   const methods = useForm();
   const {
     handleSubmit,
-    formState: { errors },
+    formState: { errors: formErrors },
   } = methods;
   const queryClient = useQueryClient();
+
+  const {
+    data: attemptResponse,
+    isLoading,
+    mutate,
+  } = useMutation(addAttempt, {
+    onSuccess: (data) => {
+      console.log('attemptResult: ' + JSON.stringify(data));
+    },
+    onError: (error) => {
+      alert('there was an error: ' + error.message);
+    },
+    onSettled: () => {
+      //queryClient.invalidateQueries('create')
+    },
+  });
+
   const classes = useStyles();
 
   const onFormSubmit = (data) => {
-    alert(data.alias + ' ' + data.guess);
-    console.log(data);
+    let challengeData = queryClient.getQueryData('randomChallenge');
+    if (challengeData) {
+      mutate({
+        ...challengeData,
+        userAlias: data.alias,
+        guess: data.guess,
+      });
+    }
   };
 
   const handleNewChallenge = () => {
     queryClient.invalidateQueries('randomChallenge', { exact: true });
   };
-
+  const alma = true;
   return (
     <div>
       <FormProvider {...methods}>
@@ -43,7 +73,7 @@ function Attempt() {
                 required
                 label="Your alias"
                 name="alias"
-                errorobj={errors.alias}
+                errorobj={formErrors.alias}
               />
             </Grid>
 
@@ -53,7 +83,7 @@ function Attempt() {
                 label="Your guess"
                 type="number"
                 name="guess"
-                errorobj={errors.guess}
+                errorobj={formErrors.guess}
               />
             </Grid>
           </Grid>
@@ -67,7 +97,7 @@ function Attempt() {
             variant="contained"
             onClick={handleSubmit(onFormSubmit)}
           >
-            Submit
+            Submit Attempt
           </Button>
         </Grid>
 
@@ -81,6 +111,17 @@ function Attempt() {
           </Button>
         </Grid>
       </Grid>
+      <UpdateMessage
+        message={
+          attemptResponse
+            ? attemptResponse.correct
+              ? 'Congratulations! Your guess is correct'
+              : 'Oops! Your guess ' +
+                attemptResponse.resultAttempt +
+                ' is wrong, but keep playing!'
+            : 'unknown'
+        }
+      />
     </div>
   );
 }
