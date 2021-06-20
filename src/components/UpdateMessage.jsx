@@ -10,7 +10,7 @@ const useStyles = makeStyles((theme) => ({
   },
 }));
 
-function UpdateMessage({ message }) {
+const UpdateMessage = ({ message }) => {
   const classes = useStyles();
 
   return (
@@ -24,6 +24,6 @@ function UpdateMessage({ message }) {
       </Grid>
     </Grid>
   );
-}
+};
 
 export default UpdateMessage;

@@ -5,24 +5,12 @@ import { makeStyles } from '@material-ui/core/styles';
 import { useForm, FormProvider } from 'react-hook-form';
 
 import FormInput from '../controls/FormInput';
-import { useQueryClient, useMutation } from 'react-query';
+import { useQueryClient, useMutation, useQuery } from 'react-query';
 import api from '../api-client/api';
 import UpdateMessage from './UpdateMessage';
+import LastAttempts from './LastAttempts';
 
-import { useInput } from './util';
-
-const useStyles = makeStyles((theme) => ({
-  buttongroup: {
-    spacing: '10px',
-  },
-}));
-
-const addAttempt = async (newAttempt) => {
-  const { data } = await api.addAttempt(newAttempt);
-  return data;
-};
-
-function Attempt() {
+const Attempt = () => {
   const methods = useForm();
   const {
     handleSubmit,
@@ -30,23 +18,32 @@ function Attempt() {
   } = methods;
   const queryClient = useQueryClient();
 
-  const {
-    data: attemptResponse,
-    isLoading,
-    mutate,
-  } = useMutation(addAttempt, {
+  const [userAlias, setUserAlias] = useState();
+
+  const { data: attemptResponse, mutate } = useMutation(api.addAttempt, {
     onSuccess: (data) => {
-      console.log('attemptResult: ' + JSON.stringify(data));
+      //console.log('attemptResult: ' + JSON.stringify(data));
+      queryClient.invalidateQueries('lastAttempts', { exact: true });
     },
     onError: (error) => {
       alert('there was an error: ' + error.message);
     },
-    onSettled: () => {
-      //queryClient.invalidateQueries('create')
-    },
   });
-
-  const classes = useStyles();
+  const user_q = attemptResponse?.user;
+  const userAlias_q = user_q?.alias;
+  const {
+    isLoading,
+    isError,
+    data: lastAttempts,
+    error,
+  } = useQuery(
+    ['lastAttempts', { userAlias: userAlias_q }],
+    api.getLastAttempts,
+    {
+      refetchOnWindowFocus: false,
+      enabled: !!userAlias_q,
+    },
+  );
 
   const onFormSubmit = (data) => {
     let challengeData = queryClient.getQueryData('randomChallenge');
@@ -62,7 +59,7 @@ function Attempt() {
   const handleNewChallenge = () => {
     queryClient.invalidateQueries('randomChallenge', { exact: true });
   };
-  const alma = true;
+
   return (
     <div>
       <FormProvider {...methods}>
@@ -111,19 +108,22 @@ function Attempt() {
           </Button>
         </Grid>
       </Grid>
-      <UpdateMessage
-        message={
-          attemptResponse
-            ? attemptResponse.correct
+      {attemptResponse && (
+        <UpdateMessage
+          message={
+            attemptResponse.correct
               ? 'Congratulations! Your guess is correct'
               : 'Oops! Your guess ' +
                 attemptResponse.resultAttempt +
                 ' is wrong, but keep playing!'
-            : 'unknown'
-        }
-      />
+          }
+        />
+      )}
+      {lastAttempts && lastAttempts.length > 0 && (
+        <LastAttempts lastAttempts={lastAttempts} />
+      )}
     </div>
   );
-}
+};
 
 export default Attempt;

@@ -15,19 +15,12 @@ const useStyles = makeStyles({
   },
 });
 
-function useChallenge() {
-  return useQuery(
+const Challenge = () => {
+  const { isLoading, isError, data, error, isFetching } = useQuery(
     'randomChallenge',
-    async () => {
-      const { data } = await api.getRandomChallenge();
-      return data;
-    },
+    api.getRandomChallenge,
     { refetchOnWindowFocus: false },
   );
-}
-
-function Challenge() {
-  const { isLoading, isError, data, error, isFetching } = useChallenge();
   const classes = useStyles();
 
   return (
@@ -52,16 +45,16 @@ function Challenge() {
       )}
     </Grid>
   );
-}
+};
 
-function Multiplication({ factorA, factorB }) {
+const Multiplication = ({ factorA, factorB }) => {
   const classes = useStyles();
   return (
     <Typography variant="h2" align="center" className={classes.multiStyle}>
       {factorA} x {factorB}
     </Typography>
   );
-}
+};
 
 Multiplication.propTypes = {
   factorA: PropTypes.number.isRequired,

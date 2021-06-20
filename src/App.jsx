@@ -20,7 +20,6 @@ const App = () => {
         <Container maxWidth="sm">
           <Challenge />
           <Attempt />
-          <LastAttempts />
         </Container>
         <ReactQueryDevtools initialIsOpen />
       </ThemeProvider>
